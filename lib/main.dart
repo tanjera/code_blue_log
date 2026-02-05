@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:core';
 import 'package:flutter/material.dart';
 
+import 'drug.dart';
 import 'event.dart';
+import 'procedure.dart';
 import 'utility.dart';
 
 void main() {
@@ -30,13 +32,13 @@ class Page extends StatefulWidget {
   final String title;
 
   @override
-  State<Page> createState() => _PageState();
+  State<Page> createState() => PageState();
 }
 
-class _PageState extends State<Page> {
+class PageState extends State<Page> {
   late Timer _timerUI;
 
-  final List<Event> _events = [];
+  List<Event> _events = [];
 
   final Stopwatch _swCode = Stopwatch();
   String _btnCode = "Start Code";
@@ -53,11 +55,36 @@ class _PageState extends State<Page> {
   final Stopwatch _swEpi = Stopwatch();
   String _txtEpi = "";
 
+  void endCode () {
+    // Reset the event log & stopwatches
+    _swCode.stop();
+    _swCode.reset();
+    _swCPR.stop();
+    _swCPR.reset();
+    _swShock.stop();
+    _swShock.reset();
+    _swEpi.stop();
+    _swEpi.reset();
+
+    _txtCode = "--:--";
+    _txtCPR = "--:--";
+    _txtShock = "--:--";
+    _txtEpi = "--:--";
+
+    _events = [];
+  }
 
   void _pressedCode() {
     if (!_swCode.isRunning) {
       _swCode.start();
       _events.add(Event(type: EventType.Event, description: "Code started"));
+    } else {
+      showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return SheetCodeEnd(this);
+        },
+      );
     }
 
     _updateUI();
@@ -113,6 +140,25 @@ class _PageState extends State<Page> {
 
     _updateUI();
   }
+
+  void _pressedDrugs() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SheetDrugs(this);
+      },
+    );
+  }
+
+  void _pressedProcedures() {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SheetProcedures(this);
+      },
+    );
+  }
+
   void _updateUI() {
     setState(() {
       _txtCode = formatTimer(_swCode.isRunning, _swCode.elapsedMilliseconds ~/ 1000);
@@ -142,7 +188,6 @@ class _PageState extends State<Page> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -213,7 +258,7 @@ class _PageState extends State<Page> {
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                       ),
                       FilledButton(
-                          style: FilledButton.styleFrom(backgroundColor: Colors.brown),
+                          style: FilledButton.styleFrom(backgroundColor: Colors.brown.shade400),
                           onPressed: _pressedEpi,
                           child: Text("Epinephrine",
                               style: TextStyle(fontSize: 24))
@@ -221,6 +266,39 @@ class _PageState extends State<Page> {
                     ],
                   ),
                 ]
+              ),
+
+            ),
+
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(backgroundColor: Colors.blueGrey),
+                      onPressed: _pressedDrugs,
+                      child: Text("Drugs",
+                          style: TextStyle(fontSize: 24))
+                    ),
+                  ),
+                ]
+              ),
+            ),
+
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+              child: Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton(
+                          style: FilledButton.styleFrom(backgroundColor: Colors.blueGrey),
+                          onPressed: _pressedProcedures,
+                          child: Text("Procedures",
+                              style: TextStyle(fontSize: 24))
+                      ),
+                    ),
+                  ]
               ),
             ),
 
@@ -261,6 +339,170 @@ class _PageState extends State<Page> {
             )
           ],
         ),
+      )
+    );
+  }
+}
+
+class SheetDrugs extends StatelessWidget {
+  final PageState _pageState;
+
+  final List<Drug> _drugs = [
+    Drug("Atropine", "Atropine administered", Colors.purple),
+    Drug("Epinephrine", "Epinephrine administered", Colors.brown.shade400),
+  ];
+
+  SheetDrugs(this._pageState, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child:
+      Padding(
+        padding: EdgeInsetsGeometry.all(10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text("Drugs",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+
+            Padding(
+                padding: EdgeInsets.all(10),
+                child: Divider(height: 1.0)
+            ),
+
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: _drugs.map((drug) =>
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(backgroundColor: drug.color),
+                          onPressed: () {
+                            if (drug.button == "Epinephrine") {
+                              _pageState._pressedEpi();
+                            } else {
+                              _pageState._events.add(Event( type: EventType.Drug, description: drug.log));
+                            }
+                            Navigator.pop(context);
+                          },
+                          child: Text(drug.button,
+                              style: TextStyle(fontSize: 24))
+                        ),
+                      ),
+                    ]
+                  ),
+                ),
+              ).toList(),
+            )
+          ]
+        )
+      )
+    );
+  }
+}
+
+
+class SheetProcedures extends StatelessWidget {
+  final PageState _pageState;
+  
+  final List<Procedure> _procedures = [
+    Procedure("Intubation", "Intubated", Colors.blueGrey),
+    Procedure("Intraosseous Line", "Intraosseous line placed", Colors.yellow.shade800),
+  ];
+  
+  SheetProcedures(this._pageState, {super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child:
+      Padding(
+        padding: EdgeInsetsGeometry.all(10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+          Text("Procedures",
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+
+          Padding(
+              padding: EdgeInsets.all(10),
+              child: Divider(height: 1.0)
+          ),
+
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: _procedures.map((procedure) =>
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton(
+                          style: FilledButton.styleFrom(backgroundColor: procedure.color),
+                          onPressed: () {
+                            _pageState._events.add(Event(type: EventType.Procedure, description: procedure.log));
+                            Navigator.pop(context);
+                          },
+                          child: Text(procedure.button,
+                              style: TextStyle(fontSize: 24))
+                        ),
+                      ),
+                    ]
+                  ),
+                ),
+              ).toList(),
+            )
+          ]
+        )
+      )
+    );
+  }
+}
+
+class SheetCodeEnd extends StatelessWidget {
+  final PageState _pageState;
+
+  const SheetCodeEnd(this._pageState, {super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text('Are you sure you want to end the code?'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                  padding: EdgeInsetsGeometry.all(10),
+                  child: FilledButton(
+                    onPressed: () { Navigator.pop(context); },
+                    child: Text("No",
+                        style: TextStyle(fontSize: 24))
+                )
+              ),
+              Padding(
+                  padding: EdgeInsetsGeometry.all(10),
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                      onPressed: () {
+                        _pageState.endCode();
+                        Navigator.pop(context);
+                      },
+                    child: Text("Yes",
+                        style: TextStyle(fontSize: 24))
+                )
+              ),
+            ]
+          )
+        ]
       )
     );
   }
