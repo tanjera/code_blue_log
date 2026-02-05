@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'event.dart';
+import 'log.dart';
 import 'main.dart';
 
 class Procedure {
@@ -60,8 +60,8 @@ class PageProcedures extends StatelessWidget {
                   subtitle: p.subtitle != null ? Text(p.subtitle!) : null,
                   trailing: p.color != null ? CircleAvatar(backgroundColor: p.color) : null,
                   onTap: () {
-                    _pageState.events.add(Event(
-                      type: EventType.Procedure,
+                    _pageState.logWrite(Entry(
+                      type: EntryType.procedure,
                               description: p.log));
                     _pageState.updateUI();
                     Navigator.pop(context);

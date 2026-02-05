@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'event.dart';
+import 'log.dart';
 import 'main.dart';
 
 class Drug {
@@ -84,7 +84,7 @@ class PageDrugs extends StatelessWidget {
                       if (d.name == "Epinephrine") {
                         _pageState.pressedEpi();
                       } else {
-                        _pageState.events.add(Event( type: EventType.Drug, description: "${d.name} administered"));
+                        _pageState.logWrite(Entry( type: EntryType.drug, description: "${d.name} administered"));
                       }
                       Navigator.pop(context);
                     },

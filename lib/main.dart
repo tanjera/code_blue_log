@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:core';
+import 'dart:io';
 import 'package:flutter/material.dart';
 
 import 'drugs.dart';
 import 'event.dart';
+import 'log.dart';
 import 'procedures.dart';
 import 'utility.dart';
 
@@ -36,9 +39,13 @@ class Page extends StatefulWidget {
 }
 
 class PageState extends State<Page> {
+  late Log _log;
+
   late Timer _timerUI;
 
-  List<Event> events = [];
+  String _identifier = "";
+  DateTime _dt = DateTime.now();
+  List<Entry> _entries = [];
 
   final Stopwatch _swCode = Stopwatch();
   String _btnCode = "Start Code";
@@ -50,11 +57,48 @@ class PageState extends State<Page> {
 
   final Stopwatch _swShock = Stopwatch();
   String _txtShock = "";
-
-
+  
   final Stopwatch _swEpi = Stopwatch();
   String _txtEpi = "";
 
+  void logWrite (Entry e) async {
+    // Adds an item to the _entries List<Entry> and writes the log file to disk
+
+    if (_entries.isEmpty) {
+      // If this is the first event being logged, create the log!
+      _dt = DateTime.now();
+      _log = Log("${_dt.toIso8601String()}.json");
+    }
+
+    _entries.add(e);
+
+    _log.write(json.encode({
+      "identifier": _identifier,
+      "datetime": _dt.toIso8601String(),
+      "entries": jsonEncode(_entries.map((e) => e.toJson()).toList())
+    }));
+
+    if (_entries.length == 5) {
+      logRead();
+    }
+  }
+  
+  void logRead () async {
+    String? input = await _log.read();
+    
+    var dAll = json.decode(input ?? "");
+
+    // Decode the header
+    String dIdentifier = dAll["identifier"];
+    DateTime dDateTime = DateTime.parse(dAll["datetime"]);
+
+    // Decode the body of the file (the Entries)
+    final dynamic dBody = jsonDecode(dAll["entries"]);
+    final List<Entry> dEntries = (dBody as List<dynamic>)
+        .map((e) => Entry.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+  
   void endCode () {
     // Reset the event log & stopwatches
     _swCode.stop();
@@ -71,13 +115,13 @@ class PageState extends State<Page> {
     _txtShock = "--:--";
     _txtEpi = "--:--";
 
-    events = [];
+    _entries = [];
   }
 
   void _pressedCode() {
     if (!_swCode.isRunning) {
       _swCode.start();
-      events.add(Event(type: EventType.Event, description: "Code started"));
+      logWrite(Entry(type: EntryType.event, description: "Code started"));
     } else {
       showModalBottomSheet(
         context: context,
@@ -98,12 +142,12 @@ class PageState extends State<Page> {
     if (!_swCPR.isRunning) {
       _swCPR.start();
 
-      events.add(Event(type: EventType.CPR, description: "CPR started"));
+      logWrite(Entry(type: EntryType.cpr, description: "CPR started"));
     } else {
       _swCPR.stop();
       _swCPR.reset();
 
-      events.add(Event(type: EventType.CPR, description: "CPR paused"));
+      logWrite(Entry(type: EntryType.cpr, description: "CPR paused"));
     }
 
     updateUI();
@@ -120,7 +164,7 @@ class PageState extends State<Page> {
       _swShock.reset();
     }
 
-    events.add(Event(type: EventType.Shock, description: "Shock delivered"));
+    logWrite(Entry(type: EntryType.shock, description: "Shock delivered"));
 
     updateUI();
   }
@@ -136,7 +180,7 @@ class PageState extends State<Page> {
       _swEpi.reset();
     }
 
-    events.add(Event(type: EventType.Drug, description: "Epinephrine administered"));
+    logWrite(Entry(type: EntryType.drug, description: "Epinephrine administered"));
 
     updateUI();
   }
@@ -348,7 +392,7 @@ class PageState extends State<Page> {
                     0: FlexColumnWidth(1),
                     1: FlexColumnWidth(3),
                   },
-                  children: events.map((item) =>
+                  children: _entries.map((item) =>
                     TableRow(
                       children: [
                         Padding(

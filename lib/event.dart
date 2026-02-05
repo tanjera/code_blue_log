@@ -1,55 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
-import 'event.dart';
+import 'log.dart';
 import 'main.dart';
 
-enum EventType {
-  CPR,
-  Drug,
-  Shock,
-  Procedure,
-  Event
-}
-
 class Event {
-  late DateTime occurred;
-  EventType type;
-  String description;
+  late String name;
+  late String description;
 
-  Event ({required this.type, required this.description}) {
-    occurred = DateTime.now();
-  }
-
-  String operator [](String key) {
-    switch (key) {
-      case 'occurred':
-        return DateFormat.Hms().format(occurred);
-      case 'type':
-        return type.toString();
-      case 'description':
-        return description;
-      default:
-        return "";
-    }
-  }
+  Event(this.name, this.description);
 }
 
 class Events {
-  List<String> list = [
-    "Assumed Care",
-    "Dispatch Received",
-    "Dispatch Acknowledged",
-    "On Scene",
-    "On Site",
-    "Return of Spontaneous Circulation (ROSC)",
-    "Time of Death Pronounced",
-    "Transferred Care"
+  List<Event> list = [
+    Event("Assumed Care", "Assumed care of patient"),
+    Event("Dispatch Received", "Dispatch received"),
+    Event("Dispatch Acknowledged", "Dispatch acknowledged"),
+    Event("On Scene", "Arrived on scene"),
+    Event("On Site", "Arrived on site"),
+    Event("Return of Spontaneous Circulation (ROSC)", "Achieved return of spontaneous circulation (ROSC)"),
+    Event("Time of Death Pronounced", "Time of death pronounced"),
+    Event("Transferred Care", "Transferred care of patient")
   ];
 
   Events () {
     // In case they are out of alphabetical order in the declaring list...
-    list.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
   }
 }
 
@@ -73,11 +48,11 @@ class PageEvents extends StatelessWidget {
                   mainAxisAlignment: .start,
                   children: _events.list.map((e) =>
                       ListTile(
-                        title: Text(e),
+                        title: Text(e.name),
                         onTap: () {
-                          _pageState.events.add(Event(
-                              type: EventType.Procedure,
-                              description: e));
+                          _pageState.logWrite(Entry(
+                              type: EntryType.event,
+                              description: e.description));
                           _pageState.updateUI();
                           Navigator.pop(context);
                         },
