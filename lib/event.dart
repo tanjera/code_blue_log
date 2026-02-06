@@ -15,11 +15,13 @@ class Events {
     Event("Assumed Care", "Assumed care of patient"),
     Event("Dispatch Received", "Dispatch received"),
     Event("Dispatch Acknowledged", "Dispatch acknowledged"),
+    Event("En Route", "En route"),
     Event("On Scene", "Arrived on scene"),
     Event("On Site", "Arrived on site"),
     Event("Return of Spontaneous Circulation (ROSC)", "Achieved return of spontaneous circulation (ROSC)"),
     Event("Time of Death Pronounced", "Time of death pronounced"),
-    Event("Transferred Care", "Transferred care of patient")
+    Event("Transferred Care", "Transferred care of patient"),
+    Event("Transporting", "Transporting patient"),
   ];
 
   Events () {
@@ -50,7 +52,7 @@ class PageEvents extends StatelessWidget {
                       ListTile(
                         title: Text(e.name),
                         onTap: () {
-                          _pageState.logWrite(Entry(
+                          _pageState.log.add(Entry(
                               type: EntryType.event,
                               description: e.description));
                           _pageState.updateUI();

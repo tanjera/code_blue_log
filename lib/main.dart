@@ -39,13 +39,9 @@ class Page extends StatefulWidget {
 }
 
 class PageState extends State<Page> {
-  late Log _log;
+  Log log = Log();
 
   late Timer _timerUI;
-
-  String _identifier = "";
-  DateTime _dt = DateTime.now();
-  List<Entry> _entries = [];
 
   final Stopwatch _swCode = Stopwatch();
   String _btnCode = "Start Code";
@@ -61,46 +57,13 @@ class PageState extends State<Page> {
   final Stopwatch _swEpi = Stopwatch();
   String _txtEpi = "";
 
-  void logWrite (Entry e) async {
-    // Adds an item to the _entries List<Entry> and writes the log file to disk
-
-    if (_entries.isEmpty) {
-      // If this is the first event being logged, create the log!
-      _dt = DateTime.now();
-      _log = Log("${_dt.toIso8601String()}.json");
-    }
-
-    _entries.add(e);
-
-    _log.write(json.encode({
-      "identifier": _identifier,
-      "datetime": _dt.toIso8601String(),
-      "entries": jsonEncode(_entries.map((e) => e.toJson()).toList())
-    }));
-
-    if (_entries.length == 5) {
-      logRead();
-    }
-  }
-  
-  void logRead () async {
-    String? input = await _log.read();
-    
-    var dAll = json.decode(input ?? "");
-
-    // Decode the header
-    String dIdentifier = dAll["identifier"];
-    DateTime dDateTime = DateTime.parse(dAll["datetime"]);
-
-    // Decode the body of the file (the Entries)
-    final dynamic dBody = jsonDecode(dAll["entries"]);
-    final List<Entry> dEntries = (dBody as List<dynamic>)
-        .map((e) => Entry.fromJson(e as Map<String, dynamic>))
-        .toList();
-  }
   
   void endCode () {
-    // Reset the event log & stopwatches
+    // Close out and reset the log
+    log.add(Entry(type: EntryType.event, description: "Code ended"));
+    log = Log();
+
+    // Reset the stopwatches
     _swCode.stop();
     _swCode.reset();
     _swCPR.stop();
@@ -114,14 +77,12 @@ class PageState extends State<Page> {
     _txtCPR = "--:--";
     _txtShock = "--:--";
     _txtEpi = "--:--";
-
-    _entries = [];
   }
 
   void _pressedCode() {
     if (!_swCode.isRunning) {
       _swCode.start();
-      logWrite(Entry(type: EntryType.event, description: "Code started"));
+      log.add(Entry(type: EntryType.event, description: "Code started"));
     } else {
       showModalBottomSheet(
         context: context,
@@ -142,12 +103,12 @@ class PageState extends State<Page> {
     if (!_swCPR.isRunning) {
       _swCPR.start();
 
-      logWrite(Entry(type: EntryType.cpr, description: "CPR started"));
+      log.add(Entry(type: EntryType.cpr, description: "CPR started"));
     } else {
       _swCPR.stop();
       _swCPR.reset();
 
-      logWrite(Entry(type: EntryType.cpr, description: "CPR paused"));
+      log.add(Entry(type: EntryType.cpr, description: "CPR paused"));
     }
 
     updateUI();
@@ -164,7 +125,7 @@ class PageState extends State<Page> {
       _swShock.reset();
     }
 
-    logWrite(Entry(type: EntryType.shock, description: "Shock delivered"));
+    log.add(Entry(type: EntryType.shock, description: "Shock delivered"));
 
     updateUI();
   }
@@ -180,7 +141,7 @@ class PageState extends State<Page> {
       _swEpi.reset();
     }
 
-    logWrite(Entry(type: EntryType.drug, description: "Epinephrine administered"));
+    log.add(Entry(type: EntryType.drug, description: "Epinephrine administered"));
 
     updateUI();
   }
@@ -392,7 +353,7 @@ class PageState extends State<Page> {
                     0: FlexColumnWidth(1),
                     1: FlexColumnWidth(3),
                   },
-                  children: _entries.map((item) =>
+                  children: log.entries.map((item) =>
                     TableRow(
                       children: [
                         Padding(
@@ -434,6 +395,8 @@ class SheetCodeEnd extends StatelessWidget {
               Padding(
                   padding: EdgeInsetsGeometry.all(10),
                   child: FilledButton(
+                      style: FilledButton.styleFrom(
+                          shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                     onPressed: () { Navigator.pop(context); },
                     child: Text("No",
                         style: TextStyle(fontSize: 24))
@@ -442,7 +405,8 @@ class SheetCodeEnd extends StatelessWidget {
               Padding(
                   padding: EdgeInsetsGeometry.all(10),
                   child: FilledButton(
-                    style: FilledButton.styleFrom(backgroundColor: Colors.red),
+                    style: FilledButton.styleFrom(backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                       onPressed: () {
                         _pageState.endCode();
                         Navigator.pop(context);

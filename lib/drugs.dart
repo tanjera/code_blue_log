@@ -84,7 +84,14 @@ class PageDrugs extends StatelessWidget {
                       if (d.name == "Epinephrine") {
                         _pageState.pressedEpi();
                       } else {
-                        _pageState.logWrite(Entry( type: EntryType.drug, description: "${d.name} administered"));
+                        if (d.route == null) {
+                          _pageState.log.add(Entry(type: EntryType.drug,
+                              description: "${d.name} administered"));
+                        } else {
+                          _pageState.log.add(Entry(type: EntryType.drug,
+                              description: "${d.name} (${d
+                                  .route}) administered"));
+                        }
                       }
                       Navigator.pop(context);
                     },

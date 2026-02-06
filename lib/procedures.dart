@@ -19,6 +19,8 @@ class Procedures {
     Procedure("Central Line", null, "Central line placed", null),
     Procedure("Chest Tube", null, "Chest tube placed", null),
     Procedure("Cricothyrotomy", null, "Cricothyrotomy placed", null),
+    Procedure("Delivered Baby", null, "Delivered the baby", null),
+    Procedure("Fetal Heart Rate", null, "Fetal heart rate assessed", null),
     Procedure("Intraosseous Line", null, "Intraosseous line placed", Colors.yellow.shade800),
     Procedure("Intravenous Line", null, "Intravenous line placed", null),
     Procedure("Intubation", "Endotracheal (ETT)", "Endotracheal intubation", null),
@@ -60,7 +62,7 @@ class PageProcedures extends StatelessWidget {
                   subtitle: p.subtitle != null ? Text(p.subtitle!) : null,
                   trailing: p.color != null ? CircleAvatar(backgroundColor: p.color) : null,
                   onTap: () {
-                    _pageState.logWrite(Entry(
+                    _pageState.log.add(Entry(
                       type: EntryType.procedure,
                               description: p.log));
                     _pageState.updateUI();
