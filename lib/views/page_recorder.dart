@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'page_drugs.dart';
 import 'page_events.dart';
 import 'page_procedures.dart';
+import 'page_rhythms.dart';
 
 import '../classes/log.dart';
 import '../classes/log.entry.dart';
@@ -49,7 +50,7 @@ class PageRecorderState extends State<PageRecorder> {
     PackageInfo _pi = await PackageInfo.fromPlatform();
 
     setState(() {
-      _version = "v ${_pi.version}";
+      _version = "${_pi.version}";
     });
   }
 
@@ -72,6 +73,8 @@ class PageRecorderState extends State<PageRecorder> {
     _txtCPR = "--:--";
     _txtShock = "--:--";
     _txtEpi = "--:--";
+
+    updateUI();
   }
 
   void _pressedCode() {
@@ -174,32 +177,54 @@ class PageRecorderState extends State<PageRecorder> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Row(
-          mainAxisAlignment: .spaceBetween,
+          mainAxisAlignment: .start,
           crossAxisAlignment: .start,
           children: [
             Align(
               alignment: .centerLeft,
               child:Text(widget.title)
             ),
-            Align(
-              alignment: .topRight,
-              child: Text(_version,
-                style: TextStyle(fontSize: 12)),
+            Padding(
+              padding: EdgeInsets.only(left: 5),
+              child: Align(
+                alignment: .topRight,
+                child: Text(_version,
+                  style: TextStyle(fontSize: 12)),
+              )
             )
           ]
         ),
           actions:
             <Widget> [
               IconButton(
-              icon: const Icon(Icons.save),
+                icon: const Icon(Icons.volume_off_outlined),
+                tooltip: 'Metronome',
+                onPressed: () {
+                  ScaffoldMessenger.of( context,
+                  ).showSnackBar(const SnackBar(content: Text('This feature has not been implemented yet, but will be implemented in a version in the near future!',
+                    textAlign: TextAlign.center,)));
+                },
+              ),
+              IconButton(
+              icon: const Icon(Icons.save_outlined),
               tooltip: 'Save Log',
               onPressed: () {
                 log.write();
 
                 ScaffoldMessenger.of( context,
-                  ).showSnackBar(const SnackBar(content: Text('Event log written to local storage.')));
-              },
-            ),
+                  ).showSnackBar(const SnackBar(content: Text('Event log written to local storage.',
+                textAlign: TextAlign.center,)));
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.info_outline),
+                tooltip: 'Identifiers',
+                onPressed: () {
+                  ScaffoldMessenger.of( context,
+                  ).showSnackBar(const SnackBar(content: Text('This feature has not been implemented yet, but will be implemented in a version in the near future!',
+                    textAlign: TextAlign.center,)));
+                },
+              ),
           ]
       ),
       body: Center(
@@ -221,13 +246,15 @@ class PageRecorderState extends State<PageRecorder> {
                         child: Text(_txtCode,
                             style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                       ),
-                      FilledButton(
+                    Padding(padding: EdgeInsets.only(left: 5),
+                      child: FilledButton(
                         style: FilledButton.styleFrom(
                             backgroundColor: Colors.blue,
                             shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                         onPressed: _pressedCode,
                         child: Text(_btnCode,
-                            style: TextStyle(fontSize: 28)),
+                            style: TextStyle(fontSize: 24)),
+                        )
                       )
                     ],
                   ),
@@ -238,13 +265,15 @@ class PageRecorderState extends State<PageRecorder> {
                         child: Text(_txtCPR,
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                       ),
-                      FilledButton(
+                      Padding(padding: EdgeInsets.only(left: 5),
+                        child: FilledButton(
                           style: FilledButton.styleFrom(
-                              backgroundColor: Colors.blueGrey,
+                              backgroundColor: Colors.green,
                               shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                           onPressed: _pressedCPR,
                           child: Text(_btnCPR,
                               style: TextStyle(fontSize: 24))
+                        )
                       )
                     ],
                   ),
@@ -255,12 +284,14 @@ class PageRecorderState extends State<PageRecorder> {
                         child: Text(_txtShock,
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                       ),
-                      FilledButton(
+                      Padding(padding: EdgeInsets.only(left: 5),
+                        child: FilledButton(
                           style: FilledButton.styleFrom(backgroundColor: Colors.red,
                               shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                           onPressed: _pressedShock,
                           child: Text("Shock",
                               style: TextStyle(fontSize: 24))
+                        )
                       )
                     ],
                   ),
@@ -271,51 +302,60 @@ class PageRecorderState extends State<PageRecorder> {
                         child: Text(_txtEpi,
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                       ),
-                      FilledButton(
+                      Padding(padding: EdgeInsets.only(left: 5),
+                        child: FilledButton(
                           style: FilledButton.styleFrom(backgroundColor: Colors.brown.shade400,
                               shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                           onPressed: pressedEpi,
                           child: Text("Epinephrine",
                               style: TextStyle(fontSize: 24))
+                        )
                       )
                     ],
                   ),
-                ]
-              ),
 
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: Colors.blueGrey,
-                          shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
-                        onPressed: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute<void>(
-                                  builder: (context) => PageDrugs(this)
-                              )
-                          );
-                        },
-                      child: Text("Drugs",
-                          style: TextStyle(fontSize: 24))
-                    ),
+                  TableRow(   // Drugs & Rhythms
+                    children: [
+                      Padding(padding: EdgeInsets.only(right: 5),
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(backgroundColor: Colors.pink,
+                              shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute<void>(
+                                    builder: (context) => PageDrugs(this)
+                                )
+                            );
+                          },
+                          child: Text("Drugs",
+                              style: TextStyle(fontSize: 24))
+                        )
+                      ),
+                      Padding(padding: EdgeInsets.only(left: 5),
+                          child: FilledButton(
+                              style: FilledButton.styleFrom(backgroundColor: Colors.red.shade900,
+                                  shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute<void>(
+                                        builder: (context) => PageRhythms(this)
+                                    )
+                                );
+                              },
+                              child: Text("Rhythms",
+                                  style: TextStyle(fontSize: 24))
+                          )
+                      ),
+                    ],
                   ),
-                ]
-              ),
-            ),
 
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-              child: Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton(
-                          style: FilledButton.styleFrom(backgroundColor: Colors.blueGrey,
+                  TableRow(   // Procedures & Events
+                    children: [
+                      Padding(padding: EdgeInsets.only(right: 5),
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(backgroundColor: Colors.orange.shade900,
                               shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                           onPressed: () {
                             Navigator.push(
@@ -327,19 +367,11 @@ class PageRecorderState extends State<PageRecorder> {
                           },
                           child: Text("Procedures",
                               style: TextStyle(fontSize: 24))
+                        )
                       ),
-                    ),
-                  ]
-              ),
-            ),
-
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
-              child: Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton(
-                          style: FilledButton.styleFrom(backgroundColor: Colors.blueGrey,
+                      Padding(padding: EdgeInsets.only(left: 5),
+                        child: FilledButton(
+                          style: FilledButton.styleFrom(backgroundColor: Colors.purple,
                               shape: RoundedRectangleBorder( borderRadius: BorderRadiusGeometry.circular(5))),
                           onPressed: () {
                             Navigator.push(
@@ -351,9 +383,11 @@ class PageRecorderState extends State<PageRecorder> {
                           },
                           child: Text("Events",
                               style: TextStyle(fontSize: 24))
+                        )
                       ),
-                    ),
-                  ]
+                    ],
+                  ),
+                ]
               ),
             ),
 

@@ -3,9 +3,11 @@ import 'package:intl/intl.dart';
 enum EntryType {
   cpr,
   drug,
+  event,
   shock,
+  rhythm,
   procedure,
-  event
+
 }
 
 class Entry {

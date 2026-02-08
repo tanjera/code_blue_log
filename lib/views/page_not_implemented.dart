@@ -17,9 +17,11 @@ class PageNotImplemented extends StatelessWidget {
         title: Text("Not Implemented"),
       ),
       body: Column(
-        mainAxisAlignment: .start,
+        mainAxisAlignment: .center,
+          crossAxisAlignment: .center,
           children: [
-            Text('This feature has not been implemented yet, but will be implemented in a version in the near future!')
+            Text('This feature has not been implemented yet, but will be implemented in a version in the near future!',
+            textAlign: TextAlign.center)
         ]
       )
     );

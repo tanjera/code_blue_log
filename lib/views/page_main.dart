@@ -51,12 +51,12 @@ class PageMainState extends State<PageMain> {
       body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.punch_clock), label: 'Recorder'),
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: 'Logs'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+          BottomNavigationBarItem(icon: Icon(Icons.alarm), label: 'Recorder'),
+          BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: 'Logs'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
+        selectedItemColor: Colors.blue,
         onTap: _onItemTapped,
       ),
     );
